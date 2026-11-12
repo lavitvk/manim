@@ -657,19 +657,20 @@ class Lesson(VoiceScene):
             )
             self.play(Write(whole["= 21"]))
         with self.voice("ddiv_3"):
-            final = Tex(R"8.4 \div 4 = 2.1", font_size=90).set_color(WHITE).move_to(problem)
-            final["2.1"].set_color(GOOD)
-            point_box = SurroundingRectangle(problem["."], buff=0.08).set_stroke(ACCENT, 3)
+            # glyphs: 8 . 4 ÷ 4 = 2 . 1
+            final = Tex(R"8.4 \div 4 = 2.1", font_size=90).move_to(problem)
+            final[-3:].set_color(GOOD)
+            point_box = SurroundingRectangle(problem[1], buff=0.08).set_stroke(ACCENT, 3)
             self.play(ShowCreation(point_box))
             self.play(
-                ReplacementTransform(problem, final[R"8.4 \div 4"][0]),
+                ReplacementTransform(problem, final[:5]),
                 FadeOut(point_box),
-                FadeIn(final["="]),
-                TransformFromCopy(whole["21"][0][0], final["2.1"][0][0]),
-                TransformFromCopy(whole["21"][0][1], final["2.1"][0][2]),
+                FadeIn(final[5]),
+                TransformFromCopy(whole[-2], final[-3]),   # 2
+                TransformFromCopy(whole[-1], final[-1]),   # 1
                 run_time=1.2,
             )
-            self.play(GrowFromCenter(final["2.1"][0][1]), Flash(final["2.1"][0][1], color=ACCENT))
+            self.play(GrowFromCenter(final[-2]), Flash(final[-2], color=ACCENT))
             note = T("Note: only divisions with remainder zero", font_size=26, color=GREY_B)
             note.next_to(whole, DOWN, buff=0.8)
             self.play(FadeIn(note))
