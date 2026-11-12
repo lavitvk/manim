@@ -1,6 +1,6 @@
 # Fractions and Decimals: Multiplication and Division
 
-A narrated ManimGL lesson for Class 7 maths, drawn on a white board. The voice-over is in Hinglish, read slowly (0.70× speed), with Hinglish subtitles. The lesson covers:
+A narrated ManimGL lesson for Class 7 maths, drawn on a white board. The voice-over is in Hinglish, read slowly (0.70× speed). The lesson covers:
 
 | Chapter | What is shown |
 |---|---|
@@ -38,7 +38,7 @@ The `voiceover/` folder already contains the clips, so rendering works without a
 
 The script is in `narration.py`. Each line is stored twice:
 
-- Roman-script Hinglish ("Toh answer aaya ten by twenty one"), shown as the subtitle.
+- Roman-script Hinglish ("Toh answer aaya ten by twenty one"), used for the optional subtitles.
 - The same words in Devanagari ("तो आंसर आया टेन बाई ट्वेंटी वन"), read by the voice. Writing the English words in Devanagari gives them a natural Indian classroom pronunciation.
 
 If you edit a line, change both versions, then regenerate the clips:
@@ -62,4 +62,4 @@ The default speed is 0.70. The model files (~350 MB) download into `tts_model/` 
 
 Each `with self.voice("key"):` block in the scene plays one clip. The animations inside the block run while the clip plays, and the scene then waits until the clip has finished, so the video stays in sync if you change the wording. If a clip is missing, the scene still renders silently and estimates the timing from the word count.
 
-Set `subtitles = False` on a scene class to hide the captions.
+Subtitles are off by default. Set `subtitles = True` on `VoiceScene` to show the Roman Hinglish text at the bottom of the screen.

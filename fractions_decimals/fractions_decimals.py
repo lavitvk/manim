@@ -195,7 +195,7 @@ class DecimalRow:
 # --------------------------------------------------------------------------
 class VoiceScene(Scene):
     default_camera_config = dict(background_color=BG_COLOR)
-    subtitles = True
+    subtitles = False
 
     def setup(self):
         super().setup()
