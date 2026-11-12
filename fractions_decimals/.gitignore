@@ -1,0 +1,3 @@
+tts_model/
+__pycache__/
+voiceover/*.wav
