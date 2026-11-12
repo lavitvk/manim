@@ -1,9 +1,11 @@
 """
-Generate the Indian-accented English voice-over for the lesson.
+Generate the Hinglish voice-over for the lesson.
 
 Uses the offline Kokoro TTS model (via ``kokoro-onnx``) with one of its
-Hindi-native voices.  Feeding English text through a Hindi voice gives
-natural sounding Indian-English speech, and everything runs locally.
+Hindi voices.  The Devanagari version of each line (``SPEECH`` in
+narration.py) is read with Hindi pronunciation, so the mix of Hindi and
+English words sounds like a real Indian classroom.  Everything runs
+locally.
 
 Setup (one time):
 
@@ -27,7 +29,7 @@ import urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from narration import NARRATION  # noqa: E402
+from narration import SPEECH  # noqa: E402
 
 MODEL_DIR = os.path.join(HERE, "tts_model")
 VOICE_DIR = os.path.join(HERE, "voiceover")
@@ -48,7 +50,7 @@ def ensure_model(model_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--voice", default="hm_omega", help="Kokoro voice (hm_omega, hm_psi, hf_alpha, hf_beta)")
-    parser.add_argument("--speed", type=float, default=0.92, help="Speaking speed (1.0 = normal)")
+    parser.add_argument("--speed", type=float, default=0.70, help="Speaking speed (1.0 = normal, 0.70 = slow)")
     parser.add_argument("--model-dir", default=MODEL_DIR)
     parser.add_argument("--only", nargs="*", help="Only regenerate these clip keys")
     parser.add_argument("--force", action="store_true", help="Overwrite existing clips")
@@ -62,13 +64,12 @@ def main():
     kokoro = Kokoro(model_path, voices_path)
     os.makedirs(VOICE_DIR, exist_ok=True)
 
-    keys = args.only or list(NARRATION)
+    keys = args.only or list(SPEECH)
     for key in keys:
         out = os.path.join(VOICE_DIR, f"{key}.mp3")
         if os.path.exists(out) and not args.force and not args.only:
             continue
-        # English phonemes + Hindi voice = Indian English accent
-        samples, rate = kokoro.create(NARRATION[key], voice=args.voice, speed=args.speed, lang="en-us")
+        samples, rate = kokoro.create(SPEECH[key], voice=args.voice, speed=args.speed, lang="hi")
         wav = out[:-4] + ".wav"
         sf.write(wav, samples, rate)
         AudioSegment.from_wav(wav).export(out, format="mp3", bitrate="96k")

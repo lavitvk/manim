@@ -1,6 +1,6 @@
 # Fractions and Decimals: Multiplication and Division
 
-A narrated ManimGL lesson for Class 7 maths. The voice-over is in Indian-accented English. The lesson covers:
+A narrated ManimGL lesson for Class 7 maths, drawn on a white board. The voice-over is in Hinglish, read slowly (0.70× speed), with Hinglish subtitles. The lesson covers:
 
 | Chapter | What is shown |
 |---|---|
@@ -17,7 +17,6 @@ A narrated ManimGL lesson for Class 7 maths. The voice-over is in Indian-accente
 | Decimal ÷ decimal | 2.4 ÷ 0.2 = 24 ÷ 2 = 12 |
 | Summary | Revision cards and a goodbye |
 
-The narration plays with on-screen captions (subtitles).
 
 ## Render
 
@@ -33,25 +32,33 @@ The individual chapter scenes are `Intro`, `MultiplyingFractions`, `DividingFrac
 
 The video ends up in `videos/`. LaTeX and FFmpeg are required, as for any ManimGL scene.
 
-## Voice-over (Indian English)
+## Voice-over (Hinglish)
 
-The `voiceover/` folder already contains the clips, so rendering works without any extra setup. To change the narration, edit `narration.py`, then regenerate the clips:
+The `voiceover/` folder already contains the clips, so rendering works without any extra setup.
+
+The script is in `narration.py`. Each line is stored twice:
+
+- Roman-script Hinglish ("Toh answer aaya ten by twenty one"), shown as the subtitle.
+- The same words in Devanagari ("तो आंसर आया टेन बाई ट्वेंटी वन"), read by the voice. Writing the English words in Devanagari gives them a natural Indian classroom pronunciation.
+
+If you edit a line, change both versions, then regenerate the clips:
 
 ```sh
 pip install kokoro-onnx soundfile
-python fractions_decimals/generate_voiceover.py --force               # all clips
-python fractions_decimals/generate_voiceover.py --only mul_2 mul_3    # just some
-python fractions_decimals/generate_voiceover.py --force --voice hf_alpha   # female voice
+python fractions_decimals/generate_voiceover.py --force                 # all clips
+python fractions_decimals/generate_voiceover.py --only mul_2 mul_3      # just some
+python fractions_decimals/generate_voiceover.py --force --speed 0.8     # a bit faster
+python fractions_decimals/generate_voiceover.py --force --voice hf_alpha  # female voice
 ```
 
-The clips come from [Kokoro](https://github.com/thewh1teagle/kokoro-onnx), an offline text-to-speech model. It reads the English text with one of its Hindi-native voices, which gives a natural Indian-English accent:
+The clips come from [Kokoro](https://github.com/thewh1teagle/kokoro-onnx), an offline text-to-speech model with Hindi voices:
 
 - `hm_omega` (male, the default)
 - `hm_psi` (male)
 - `hf_alpha` (female)
 - `hf_beta` (female)
 
-The model files (~350 MB) download into `tts_model/` on the first run.
+The default speed is 0.70. The model files (~350 MB) download into `tts_model/` on the first run.
 
 Each `with self.voice("key"):` block in the scene plays one clip. The animations inside the block run while the clip plays, and the scene then waits until the clip has finished, so the video stays in sync if you change the wording. If a clip is missing, the scene still renders silently and estimates the timing from the word count.
 

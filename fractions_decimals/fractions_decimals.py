@@ -31,11 +31,13 @@ from narration import NARRATION  # noqa: E402
 
 VOICE_DIR = os.path.join(HERE, "voiceover")
 
-BG_COLOR = "#14302A"      # chalkboard green
-NUM_COLOR = YELLOW        # numerators
-DEN_COLOR = BLUE_B        # denominators
-ACCENT = ORANGE
-GOOD = GREEN_B
+BG_COLOR = "#FFFFFF"      # white board
+INK = "#1C1C1C"           # main text / lines
+MUTED = "#6B6F76"         # secondary text
+NUM_COLOR = "#C2185B"     # numerators
+DEN_COLOR = "#1565C0"     # denominators
+ACCENT = "#E65100"        # decimal point, hops, highlights
+GOOD = "#2E7D32"          # answers
 FONT = "Sans"
 
 # manimgl's default LaTeX template loads the `physics` package, which turns
@@ -46,14 +48,19 @@ _Tex = Tex
 
 def Tex(*tex_strings, **kwargs):
     kwargs["additional_preamble"] = kwargs.get("additional_preamble", "") + DIV_FIX
-    return _Tex(*tex_strings, **kwargs)
+    tex = _Tex(*tex_strings, **kwargs)
+    # Tex is drawn white by default; make it dark ink for the white board
+    for mob in tex.family_members_with_points():
+        if color_to_hex(mob.get_fill_color()).upper() == "#FFFFFF":
+            mob.set_fill(INK)
+    return tex
 
 
 # --------------------------------------------------------------------------
 # Building blocks
 # --------------------------------------------------------------------------
-def T(text, font_size=36, color=WHITE, **kwargs):
-    return Text(text, font=FONT, font_size=font_size, color=color, **kwargs)
+def T(text, font_size=36, color=INK, **kwargs):
+    return Text(text, font=FONT, font_size=font_size, **kwargs).set_color(color)
 
 
 class Frac(VGroup):
@@ -63,7 +70,7 @@ class Frac(VGroup):
         num = Tex(str(num), font_size=font_size).set_color(num_color)
         den = Tex(str(den), font_size=font_size).set_color(den_color)
         width = max(num.get_width(), den.get_width()) + 0.2 * font_size / 72
-        bar = Line(LEFT, RIGHT).set_width(width).set_stroke(WHITE, 4 * font_size / 72)
+        bar = Line(LEFT, RIGHT).set_width(width).set_stroke(INK, 4 * font_size / 72)
         num.next_to(bar, UP, buff=0.12 * font_size / 72)
         den.next_to(bar, DOWN, buff=0.12 * font_size / 72)
         super().__init__(num, bar, den, **kwargs)
@@ -99,7 +106,7 @@ class DecimalRow:
     position ``k`` sits between slot ``k - 1`` and slot ``k``.
     """
 
-    def __init__(self, digits: str, k: int, x0=0.0, y=0.0, font_size=110, spacing=0.8, color=WHITE):
+    def __init__(self, digits: str, k: int, x0=0.0, y=0.0, font_size=110, spacing=0.8, color=INK):
         self.font_size = font_size
         self.spacing = spacing
         self.x0 = x0
@@ -220,10 +227,10 @@ class VoiceScene(Scene):
 
     def show_caption(self, text):
         lines = textwrap.wrap(text, 72)
-        caption = VGroup(*(T(line, font_size=26, color=GREY_A) for line in lines))
+        caption = VGroup(*(T(line, font_size=26, color=MUTED) for line in lines))
         caption.arrange(DOWN, buff=0.1)
         caption.to_edge(DOWN, buff=0.22)
-        back = BackgroundRectangle(caption, fill_opacity=0.55, buff=0.12)
+        back = BackgroundRectangle(caption, fill_color="#EEF0F2", fill_opacity=0.95, buff=0.12)
         new = VGroup(back, caption)
         new.fix_in_frame()
         if self.caption is not None:
@@ -231,7 +238,7 @@ class VoiceScene(Scene):
         self.add(new)
         self.caption = new
 
-    def set_header(self, text, color=YELLOW):
+    def set_header(self, text, color=NUM_COLOR):
         title = T(text, font_size=44, color=color, weight=BOLD)
         title.to_corner(UL, buff=0.45)
         line = Underline(title, stretch_factor=1.05).set_stroke(color, 3)
@@ -263,10 +270,10 @@ class Lesson(VoiceScene):
     # ---------------------------------------------------------------- intro
     def intro(self):
         title = T("Fractions and Decimals", font_size=84, weight=BOLD)
-        title.set_color_by_gradient(YELLOW, ORANGE)
-        sub = T("Multiplication and Division", font_size=42, color=BLUE_B)
+        title.set_color_by_gradient(NUM_COLOR, ACCENT)
+        sub = T("Multiplication and Division", font_size=42, color=DEN_COLOR)
         sub.next_to(title, DOWN, buff=0.4)
-        cls = T("Class 7  •  Mathematics", font_size=28, color=GREY_B)
+        cls = T("Class 7  •  Mathematics", font_size=28, color=MUTED)
         cls.next_to(sub, DOWN, buff=0.5)
 
         with self.voice("intro_1"):
@@ -275,7 +282,7 @@ class Lesson(VoiceScene):
 
         with self.voice("intro_2"):
             self.play(VGroup(title, sub, cls).animate.scale(0.6).to_edge(UP, buff=0.4), run_time=1)
-            learnt = T("Already learnt:", font_size=34, color=GREY_A)
+            learnt = T("Already learnt:", font_size=34, color=MUTED)
             ex1 = expr(Frac(1, 4, 60), "+", Frac(2, 4, 60), "=", Frac(3, 4, 60), font_size=60)
             ex2 = Tex(R"0.5 + 0.2 = 0.7", font_size=60)
             ex3 = Tex(R"0.9 - 0.4 = 0.5", font_size=60)
@@ -294,8 +301,8 @@ class Lesson(VoiceScene):
             labels = [
                 (R"\times", "Fractions", NUM_COLOR),
                 (R"\div", "Fractions", NUM_COLOR),
-                (R"\times", "Decimals", BLUE_B),
-                (R"\div", "Decimals", BLUE_B),
+                (R"\times", "Decimals", DEN_COLOR),
+                (R"\div", "Decimals", DEN_COLOR),
             ]
             for sym, word, col in labels:
                 rect = RoundedRectangle(width=2.8, height=2.0, corner_radius=0.2)
@@ -306,7 +313,7 @@ class Lesson(VoiceScene):
                 boxes.add(VGroup(rect, inner))
             boxes.arrange(RIGHT, buff=0.4).shift(0.3 * DOWN)
             self.play(LaggedStartMap(FadeIn, boxes, shift=UP, lag_ratio=0.35), run_time=3)
-            self.play(LaggedStart(*(Indicate(b[1][0]) for b in boxes), lag_ratio=0.3), run_time=2)
+            self.play(LaggedStart(*(Indicate(b[1][0], color=ACCENT) for b in boxes), lag_ratio=0.3), run_time=2)
         self.clear_board()
 
     # ---------------------------------------------------- multiply fractions
@@ -386,12 +393,12 @@ class Lesson(VoiceScene):
             two = brace.get_tex("2").set_color(NUM_COLOR)
             self.play(GrowFromCenter(brace), FadeIn(two))
             divider = DashedLine(UP, DOWN).set_height(2.4).move_to(rotis)
-            divider.set_stroke(WHITE, 3)
+            divider.set_stroke(INK, 3)
             self.play(ShowCreation(divider))
             halves = VGroup(
                 SurroundingRectangle(rotis[0], buff=0.15),
                 SurroundingRectangle(rotis[1], buff=0.15),
-            ).set_stroke(GREY_B, 2)
+            ).set_stroke(MUTED, 2)
             self.play(ShowCreation(halves))
 
         with self.voice("of_3"):
@@ -412,12 +419,12 @@ class Lesson(VoiceScene):
     def product_size(self):
         with self.voice("cmp_1"):
             self.set_header("How Big is the Product?")
-            line = NumberLine((0, 3, 1), unit_size=3.4, include_numbers=True, tick_size=0.12)
-            line.numbers.set_color(GREY_B)
+            line = NumberLine((0, 3, 1), color=INK, unit_size=3.4, include_numbers=True, tick_size=0.12)
+            line.numbers.set_color(MUTED)
             line.shift(0.35 * DOWN)
             # sixths
             small_ticks = VGroup(*(
-                Line(UP, DOWN).set_height(0.12).set_stroke(GREY_C, 1.5).move_to(line.n2p(x / 6))
+                Line(UP, DOWN).set_height(0.12).set_stroke(MUTED, 1.5).move_to(line.n2p(x / 6))
                 for x in range(1, 18) if x % 6
             ))
             self.play(ShowCreation(line), FadeIn(small_ticks), run_time=1.5)
@@ -445,7 +452,7 @@ class Lesson(VoiceScene):
                 self.play(FadeIn(title), Write(equation), run_time=1.2)
 
                 dots, labels = VGroup(), VGroup()
-                for (n, d), col in [(a, BLUE_B), (b, BLUE_B), (p, GOOD)]:
+                for (n, d), col in [(a, DEN_COLOR), (b, DEN_COLOR), (p, GOOD)]:
                     dot = Dot(line.n2p(n / d), radius=0.1, fill_color=col)
                     lab = Frac(n, d, 40, col, col)
                     lab.next_to(dot, UP, buff=0.25)
@@ -491,11 +498,11 @@ class Lesson(VoiceScene):
             self.play(*flip_into(f, r), run_time=2)
 
         with self.voice("rec_2"):
-            lab1 = T("fraction", font_size=30, color=GREY_B).next_to(f, DOWN, buff=0.4)
+            lab1 = T("fraction", font_size=30, color=MUTED).next_to(f, DOWN, buff=0.4)
             lab2 = T("reciprocal", font_size=30, color=GOOD).next_to(r, DOWN, buff=0.4)
             self.play(FadeIn(lab1), FadeIn(lab2))
-            self.play(Indicate(f.num), Indicate(r.den), run_time=1.2)
-            self.play(Indicate(f.den), Indicate(r.num), run_time=1.2)
+            self.play(Indicate(f.num, color=ACCENT), Indicate(r.den, color=ACCENT), run_time=1.2)
+            self.play(Indicate(f.den, color=ACCENT), Indicate(r.num, color=ACCENT), run_time=1.2)
             check = Tex(R"\frac{3}{5} \times \frac{5}{3} = 1", font_size=56).to_edge(DOWN, buff=1.6)
             self.play(Write(check))
         self.clear_board()
@@ -565,7 +572,7 @@ class Lesson(VoiceScene):
     def multiplying_decimals(self):
         problem = Tex(R"0.5 \times 0.7", font_size=96).shift(1.6 * UP)
         with self.voice("dmul_1"):
-            self.set_header("Multiplication of Decimals", color=BLUE_B)
+            self.set_header("Multiplication of Decimals", color=DEN_COLOR)
             self.play(Write(problem), run_time=1.5)
 
         step1 = Tex(R"5 \times 7 = 35", font_size=72).shift(2.5 * LEFT + 0.3 * DOWN)
@@ -614,7 +621,7 @@ class Lesson(VoiceScene):
 
     def decimal_times_powers_of_ten(self):
         with self.voice("p10_1"):
-            self.set_header("Multiplying by 10, 100, 1000", color=BLUE_B)
+            self.set_header("Multiplying by 10, 100, 1000", color=DEN_COLOR)
             rule = T("Point moves RIGHT  →  one place for each zero", font_size=32, color=ACCENT)
             rule.next_to(self.header, DOWN, buff=0.5).to_edge(LEFT, buff=0.6)
             self.play(Write(rule))
@@ -642,7 +649,7 @@ class Lesson(VoiceScene):
     # ------------------------------------------------- dividing decimals
     def decimal_by_whole(self):
         with self.voice("ddiv_1"):
-            self.set_header("Division of Decimals", color=BLUE_B)
+            self.set_header("Division of Decimals", color=DEN_COLOR)
             tag = T("(a) Decimal ÷ Whole number", font_size=30, color=ACCENT)
             tag.next_to(self.header, DOWN, buff=0.45).to_edge(LEFT, buff=0.6)
             self.play(FadeIn(tag, shift=RIGHT))
@@ -671,14 +678,14 @@ class Lesson(VoiceScene):
                 run_time=1.2,
             )
             self.play(GrowFromCenter(final[-2]), Flash(final[-2], color=ACCENT))
-            note = T("Note: only divisions with remainder zero", font_size=26, color=GREY_B)
+            note = T("Note: only divisions with remainder zero", font_size=26, color=MUTED)
             note.next_to(whole, DOWN, buff=0.8)
             self.play(FadeIn(note))
         self.clear_board()
 
     def decimal_by_powers_of_ten(self):
         with self.voice("d10_1"):
-            self.set_header("Dividing by 10, 100, 1000", color=BLUE_B)
+            self.set_header("Dividing by 10, 100, 1000", color=DEN_COLOR)
             rule = T("Point moves LEFT  ←  one place for each zero", font_size=32, color=ACCENT)
             rule.next_to(self.header, DOWN, buff=0.5).to_edge(LEFT, buff=0.6)
             self.play(Write(rule))
@@ -704,7 +711,7 @@ class Lesson(VoiceScene):
 
     def decimal_by_decimal(self):
         with self.voice("dd_1"):
-            self.set_header("Decimal ÷ Decimal", color=BLUE_B)
+            self.set_header("Decimal ÷ Decimal", color=DEN_COLOR)
             rule = T("Shift the point equally in both, until the divisor is a whole number",
                      font_size=28, color=ACCENT)
             rule.next_to(self.header, DOWN, buff=0.5).to_edge(LEFT, buff=0.6)
@@ -714,8 +721,8 @@ class Lesson(VoiceScene):
         bottom = DecimalRow("02", 1, x0=1.6, y=0.2, font_size=100, spacing=0.72)
         div = Tex(R"\div", font_size=100).move_to([(-3.2 + 0.72 + 1.6) / 2, 0.2, 0])
         div.set_x((top.slots[1].get_right()[0] + bottom.slots[0].get_left()[0]) / 2)
-        lab_a = T("dividend", font_size=24, color=GREY_B).next_to(top.digits_mob(), UP, buff=0.4)
-        lab_b = T("divisor", font_size=24, color=GREY_B).next_to(bottom.digits_mob(), UP, buff=0.4)
+        lab_a = T("dividend", font_size=24, color=MUTED).next_to(top.digits_mob(), UP, buff=0.4)
+        lab_b = T("divisor", font_size=24, color=MUTED).next_to(bottom.digits_mob(), UP, buff=0.4)
         with self.voice("dd_2"):
             self.play(FadeIn(top.group), FadeIn(div), FadeIn(bottom.group), FadeIn(lab_a), FadeIn(lab_b))
             arcs_a = top.move_point(self, 1, hop_time=0.7)
@@ -746,7 +753,7 @@ class Lesson(VoiceScene):
         cards = VGroup()
         for item in items:
             rect = RoundedRectangle(width=6.2, height=1.25, corner_radius=0.15)
-            rect.set_stroke(GREY_B, 2).set_fill(BLACK, 0.25)
+            rect.set_stroke(MUTED, 2).set_fill("#F6F7F8", 1)
             item.set_max_width(5.8).move_to(rect)
             cards.add(VGroup(rect, item))
         cards.arrange_in_grid(3, 2, h_buff=0.4, v_buff=0.3).shift(0.15 * DOWN)
@@ -756,8 +763,8 @@ class Lesson(VoiceScene):
             self.play(FadeOut(cards), FadeOut(self.header))
             self.header = None
             bye = T("Thank you, students!", font_size=72, weight=BOLD)
-            bye.set_color_by_gradient(YELLOW, ORANGE)
-            hw = T("Practise at home  •  See you in the next class", font_size=32, color=BLUE_B)
+            bye.set_color_by_gradient(NUM_COLOR, ACCENT)
+            hw = T("Practise at home  •  See you in the next class", font_size=32, color=DEN_COLOR)
             VGroup(bye, hw).arrange(DOWN, buff=0.5)
             self.play(Write(bye), run_time=1.5)
             self.play(FadeIn(hw, shift=UP))
